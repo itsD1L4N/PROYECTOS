@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="fas fa-chart-line"></i> Reportes de ventas - Hoy</h2>
+    <p>Resumen de pedidos de almuerzo y cafetería, productos más vendidos.</p>
+</div>
+
+<div class="reports-grid">
+    <div class="report-card almuerzo-report">
+        <div class="card-icon"><i class="fas fa-utensil-spoon"></i></div>
+        <h3>Almuerzos</h3>
+        <div class="stats">
+            <p><strong>Total pedidos:</strong> {{ almuerzos.total or 0 }}</p>
+            <p><strong>Para llevar:</strong> {{ almuerzos.para_llevar or 0 }}</p>
+            <p><strong>En sala:</strong> {{ (almuerzos.total or 0) - (almuerzos.para_llevar or 0) }}</p>
+        </div>
+    </div>
+    <div class="report-card cafeteria-report">
+        <div class="card-icon"><i class="fas fa-mug-hot"></i></div>
+        <h3>Cafetería</h3>
+        <div class="stats">
+            <p><strong>Total pedidos:</strong> {{ cafeterias.total or 0 }}</p>
+            <p><strong>Ingresos totales:</strong> {{ "%.2f"|format(cafeterias.ingreso or 0) }} Bs</p>
+            <p><strong>Ticket promedio:</strong> {{ "%.2f"|format((cafeterias.ingreso or 0) / (cafeterias.total or 1)) }} Bs</p>
+        </div>
+    </div>
+    <div class="report-card top-products">
+        <div class="card-icon"><i class="fas fa-trophy"></i></div>
+        <h3>Top 5 productos más vendidos</h3>
+        <ul class="top-list">
+            {% if top %}
+                {% for nombre, cantidad in top %}
+                <li><span class="rank">{{ loop.index }}</span> {{ nombre }} <span class="count">{{ cantidad }} uds.</span></li>
+                {% endfor %}
+            {% else %}
+                <li>No hay ventas registradas hoy</li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+
+<div class="extra-info">
+    <p><i class="fas fa-chart-simple"></i> Reporte generado en tiempo real. Los datos se actualizan automáticamente con cada pedido.</p>
+</div>
+
+<style>
+    .reports-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+    .report-card {
+        background: white;
+        border-radius: 32px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+    }
+    .report-card:hover {
+        transform: translateY(-5px);
+    }
+    .card-icon {
+        font-size: 2.5rem;
+        color: #bc6c25;
+        margin-bottom: 1rem;
+    }
+    .stats p {
+        margin: 0.5rem 0;
+    }
+    .top-list {
+        list-style: none;
+        padding-left: 0;
+    }
+    .top-list li {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.4rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    .rank {
+        display: inline-block;
+        width: 28px;
+        height: 28px;
+        background: #fef4e8;
+        border-radius: 40px;
+        text-align: center;
+        font-weight: bold;
+        margin-right: 8px;
+    }
+    .count {
+        font-weight: bold;
+        color: #bc6c25;
+    }
+    .extra-info {
+        margin-top: 2rem;
+        background: #fff7ef;
+        border-radius: 28px;
+        padding: 1rem;
+        text-align: center;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,606 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="fas fa-mug-hot"></i> Cafetería</h2>
+    <p>Selecciona un producto, elige su variante (tamaño, tipo) y la cantidad.</p>
+</div>
+
+<div class="cafeteria-layout">
+    <!-- PRODUCTOS (con imagen y precio base) -->
+    <div class="productos-section">
+        <h3><i class="fas fa-cookie-bite"></i> Nuestros productos</h3>
+        <div class="productos-grid" id="productosGrid">
+            {% for prod in productos %}
+            <div class="producto-card" 
+                 data-id="{{ prod.id }}" 
+                 data-nombre="{{ prod.nombre }}" 
+                 data-imagen="{{ prod.imagen }}"
+                 data-precio="{{ prod.precio }}">
+                <div class="producto-img">
+                    {% if prod.imagen %}
+                        <img src="{{ url_for('static', filename='uploads/' + prod.imagen) }}" alt="{{ prod.nombre }}">
+                    {% else %}
+                        <div class="no-img"><i class="fas fa-image fa-3x"></i></div>
+                    {% endif %}
+                </div>
+                <div class="producto-info">
+                    <span class="producto-nombre">{{ prod.nombre }}</span>
+                    <span class="producto-precio">{{ "%.2f"|format(prod.precio) }} Bs</span>
+                    <span class="producto-stock"><i class="fas fa-boxes"></i> {{ prod.stock }}</span>
+                </div>
+                <button class="btn-seleccionar" data-id="{{ prod.id }}">Seleccionar</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- CARRITO / PEDIDO ACTUAL -->
+    <div class="pedido-section">
+        <div class="mesa-selector">
+            <label><i class="fas fa-chair"></i> Mesa (opcional para llevar):</label>
+            <select id="mesaSelect">
+                <option value="0">📦 Para llevar</option>
+                {% for mesa in mesas %}
+                <option value="{{ mesa.numero }}">Mesa {{ mesa.numero }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="carrito-card">
+            <h3><i class="fas fa-shopping-cart"></i> Pedido actual</h3>
+            <ul id="listaCarrito" class="lista-carrito">
+                <li class="empty-message">No hay productos agregados</li>
+            </ul>
+            <div class="total-carrito">
+                <strong>Total: <span id="totalCarrito">0.00</span> Bs</strong>
+            </div>
+            <button id="finalizarPedidoBtn" class="btn-finalizar" disabled>
+                <i class="fas fa-receipt"></i> Finalizar pedido
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA SELECCIONAR VARIANTE Y CANTIDAD -->
+<div id="modalVariante" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 id="modalProductoNombre"></h3>
+        <div class="variantes-list" id="variantesList"></div>
+        <div class="cantidad-variante">
+            <label>Cantidad:</label>
+            <div class="cantidad-control">
+                <button id="varianteMenos" class="cantidad-btn">−</button>
+                <span id="varianteCantidad">1</span>
+                <button id="varianteMas" class="cantidad-btn">+</button>
+            </div>
+        </div>
+        <button id="agregarAlCarritoBtn" class="btn-primary">Agregar al pedido</button>
+    </div>
+</div>
+
+<!-- NOTIFICACIONES FLOTANTES (CSS) -->
+<div id="toastNotification" class="toast-notification" style="display: none;"></div>
+
+<style>
+    /* ========== ESTILOS PRINCIPALES ========== */
+    .cafeteria-layout { display: flex; flex-wrap: wrap; gap: 2rem; }
+    .productos-section { flex: 2; min-width: 280px; }
+    .pedido-section { flex: 1; min-width: 300px; }
+
+    /* PRODUCTOS */
+    .productos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .producto-card {
+        background: white;
+        border-radius: 28px;
+        padding: 1rem;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border: 1px solid #eedbc8;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .producto-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    .producto-img {
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+    .producto-img img {
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 16px;
+        object-fit: cover;
+    }
+    .producto-info {
+        margin: 0.5rem 0;
+    }
+    .producto-nombre {
+        font-weight: bold;
+        display: block;
+        font-size: 1rem;
+    }
+    .producto-precio {
+        font-size: 0.9rem;
+        color: #bc6c25;
+        font-weight: bold;
+        display: block;
+    }
+    .producto-stock {
+        font-size: 0.75rem;
+        color: #2e7d32;
+    }
+    .btn-seleccionar {
+        background: #bc6c25;
+        color: white;
+        border: none;
+        border-radius: 60px;
+        padding: 0.5rem;
+        margin-top: 0.5rem;
+        cursor: pointer;
+        width: 100%;
+        transition: background 0.1s;
+    }
+    .btn-seleccionar:active {
+        transform: scale(0.97);
+    }
+
+    /* CARRITO */
+    .mesa-selector {
+        background: white;
+        border-radius: 32px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .carrito-card {
+        background: white;
+        border-radius: 32px;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 100px;
+    }
+    .lista-carrito {
+        list-style: none;
+        max-height: 300px;
+        overflow-y: auto;
+        margin: 1rem 0;
+        padding-left: 0;
+    }
+    .carrito-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    .btn-eliminar-item {
+        background: none;
+        border: none;
+        color: #c62828;
+        cursor: pointer;
+        font-size: 1.1rem;
+        transition: transform 0.1s;
+    }
+    .btn-eliminar-item:active { transform: scale(0.9); }
+    .total-carrito {
+        text-align: right;
+        border-top: 2px solid #bc6c25;
+        padding-top: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    .btn-finalizar {
+        width: 100%;
+        background: #2e7d32;
+        color: white;
+        border: none;
+        padding: 0.8rem;
+        border-radius: 60px;
+        margin-top: 1rem;
+        cursor: pointer;
+        transition: 0.1s;
+    }
+    .btn-finalizar:active { transform: scale(0.97); }
+    .btn-finalizar:disabled {
+        background: #aaa;
+        cursor: not-allowed;
+    }
+
+    /* MODAL */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-content {
+        background: white;
+        margin: 0 auto;
+        padding: 1.8rem;
+        border-radius: 40px;
+        max-width: 450px;
+        width: 90%;
+        position: relative;
+        box-shadow: 0 20px 35px rgba(0,0,0,0.3);
+        animation: modalFadeIn 0.2s;
+    }
+    @keyframes modalFadeIn {
+        from { opacity: 0; transform: translateY(-30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .close-modal {
+        position: absolute;
+        right: 20px;
+        top: 15px;
+        font-size: 1.6rem;
+        cursor: pointer;
+        color: #5e3a1c;
+        transition: 0.1s;
+    }
+    .close-modal:hover { color: #c62828; }
+    .variantes-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        margin: 1rem 0;
+        max-height: 250px;
+        overflow-y: auto;
+    }
+    .variante-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.6rem 1rem;
+        border: 1px solid #e2cfb5;
+        border-radius: 60px;
+        cursor: pointer;
+        transition: all 0.1s;
+        background: #fffcf8;
+    }
+    .variante-item.seleccionada {
+        background: #bc6c25;
+        color: white;
+        border-color: #9c5211;
+    }
+    .variante-item img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 8px;
+    }
+    .cantidad-variante {
+        margin: 1rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .cantidad-control {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        background: #fef4e8;
+        padding: 0.2rem 0.8rem;
+        border-radius: 60px;
+    }
+    .cantidad-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.6rem;
+        background: #bc6c25;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.05s linear;
+    }
+    .cantidad-btn:active { transform: scale(0.92); }
+    #varianteCantidad {
+        font-size: 1.5rem;
+        min-width: 50px;
+        text-align: center;
+        font-weight: bold;
+    }
+    .btn-primary {
+        width: 100%;
+        background: #bc6c25;
+        color: white;
+        border: none;
+        padding: 0.8rem;
+        border-radius: 60px;
+        margin-top: 0.5rem;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    /* NOTIFICACIÓN FLOTANTE */
+    .toast-notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #333;
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-family: Arial, sans-serif;
+        z-index: 2000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        animation: fadeInOut 3s ease;
+    }
+    .toast-notification.error { background: #dc3545; }
+    .toast-notification.success { background: #28a745; }
+    @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateY(20px); }
+        10% { opacity: 1; transform: translateY(0); }
+        90% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(20px); }
+    }
+
+    @media (max-width: 700px) {
+        .cafeteria-layout { flex-direction: column; }
+        .modal-content { width: 95%; margin: 20% auto; }
+        .productos-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    }
+</style>
+
+<script>
+    // ==================== VARIABLES GLOBALES ====================
+    let carrito = [];
+    let productoSeleccionado = null;
+    let variantesActuales = [];
+    let varianteSeleccionada = null;
+    let cantidadVariante = 1;
+
+    // ==================== DOM ELEMENTS ====================
+    const listaCarrito = document.getElementById('listaCarrito');
+    const totalCarritoSpan = document.getElementById('totalCarrito');
+    const finalizarBtn = document.getElementById('finalizarPedidoBtn');
+    const mesaSelect = document.getElementById('mesaSelect');
+    const modal = document.getElementById('modalVariante');
+    const modalProductoNombre = document.getElementById('modalProductoNombre');
+    const variantesListDiv = document.getElementById('variantesList');
+    const varianteMenos = document.getElementById('varianteMenos');
+    const varianteMas = document.getElementById('varianteMas');
+    const varianteCantidadSpan = document.getElementById('varianteCantidad');
+    const agregarCarritoBtn = document.getElementById('agregarAlCarritoBtn');
+    const closeModal = document.querySelector('.close-modal');
+    const toast = document.getElementById('toastNotification');
+
+    // ==================== NOTIFICACIONES ====================
+    function mostrarNotificacion(mensaje, tipo = 'info') {
+        toast.textContent = mensaje;
+        toast.className = `toast-notification ${tipo}`;
+        toast.style.display = 'block';
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 3000);
+    }
+
+    // ==================== ACTUALIZAR CARRITO ====================
+    function actualizarCarritoUI() {
+        listaCarrito.innerHTML = '';
+        let total = 0;
+        if (carrito.length === 0) {
+            listaCarrito.innerHTML = '<li class="empty-message">No hay productos agregados</li>';
+            finalizarBtn.disabled = true;
+        } else {
+            finalizarBtn.disabled = false;
+            carrito.forEach((item, idx) => {
+                const subtotal = item.precio * item.cantidad;
+                total += subtotal;
+                const li = document.createElement('li');
+                li.className = 'carrito-item';
+                li.innerHTML = `
+                    <div>
+                        <strong>${escapeHtml(item.producto_nombre)}</strong><br>
+                        ${item.variante_nombre ? `(${escapeHtml(item.variante_nombre)})` : ''} x${item.cantidad}
+                    </div>
+                    <div>
+                        ${subtotal.toFixed(2)} Bs
+                        <button class="btn-eliminar-item" data-index="${idx}"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                `;
+                listaCarrito.appendChild(li);
+            });
+        }
+        totalCarritoSpan.innerText = total.toFixed(2);
+
+        document.querySelectorAll('.btn-eliminar-item').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = parseInt(btn.dataset.index);
+                carrito.splice(idx, 1);
+                actualizarCarritoUI();
+            });
+        });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, (m) => {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // ==================== CARGAR VARIANTES ====================
+    async function cargarVariantes(productoId, productoNombre, precioBase) {
+        try {
+            const response = await fetch(`/get_variantes/${productoId}`);
+            const data = await response.json();
+            variantesActuales = data.variantes || [];
+            modalProductoNombre.innerText = productoNombre;
+            variantesListDiv.innerHTML = '';
+
+            if (variantesActuales.length === 0) {
+                const div = document.createElement('div');
+                div.className = 'variante-item seleccionada';
+                div.innerHTML = `<span>Estándar</span><span>${precioBase.toFixed(2)} Bs</span>`;
+                div.dataset.id = 0;
+                div.dataset.precio = precioBase;
+                variantesListDiv.appendChild(div);
+                varianteSeleccionada = { id: 0, nombre_variante: 'Estándar', precio: precioBase };
+            } else {
+                variantesActuales.forEach(v => {
+                    const div = document.createElement('div');
+                    div.className = 'variante-item';
+                    div.innerHTML = `
+                        ${v.imagen ? `<img src="{{ url_for('static', filename='uploads/') }}${v.imagen}">` : '<i class="fas fa-coffee"></i>'}
+                        <span>${escapeHtml(v.nombre_variante || 'Variante')}</span>
+                        <span>${v.precio.toFixed(2)} Bs</span>
+                    `;
+                    div.dataset.id = v.id;
+                    div.dataset.precio = v.precio;
+                    div.addEventListener('click', () => {
+                        document.querySelectorAll('.variante-item').forEach(el => el.classList.remove('seleccionada'));
+                        div.classList.add('seleccionada');
+                        varianteSeleccionada = { id: v.id, nombre_variante: v.nombre_variante, precio: v.precio };
+                    });
+                    variantesListDiv.appendChild(div);
+                });
+                if (variantesListDiv.firstChild) variantesListDiv.firstChild.click();
+            }
+            cantidadVariante = 1;
+            varianteCantidadSpan.innerText = cantidadVariante;
+            modal.style.display = 'flex';
+        } catch (error) {
+            console.error('Error al cargar variantes:', error);
+            mostrarNotificacion('Error al cargar las variantes del producto', 'error');
+        }
+    }
+
+    // ==================== AGREGAR AL CARRITO ====================
+    function agregarAlCarrito() {
+        if (!varianteSeleccionada) {
+            mostrarNotificacion('Selecciona una variante', 'warning');
+            return;
+        }
+        if (!productoSeleccionado) return;
+
+        const item = {
+            producto_id: productoSeleccionado.id,
+            producto_nombre: productoSeleccionado.nombre,
+            variante_id: varianteSeleccionada.id,
+            variante_nombre: varianteSeleccionada.nombre_variante || '',
+            precio: typeof varianteSeleccionada.precio === 'number' ? varianteSeleccionada.precio : 0,
+            cantidad: cantidadVariante
+        };
+        // Asegurar que precio sea número
+        if (isNaN(item.precio)) item.precio = 0;
+        const existente = carrito.find(i => i.producto_id === item.producto_id && i.variante_id === item.variante_id);
+        if (existente) {
+            existente.cantidad += item.cantidad;
+        } else {
+            carrito.push(item);
+        }
+        actualizarCarritoUI();
+        modal.style.display = 'none';
+        varianteSeleccionada = null;
+    }
+
+    // Eventos de cantidad en modal
+    varianteMenos.addEventListener('click', () => {
+        if (cantidadVariante > 1) {
+            cantidadVariante--;
+            varianteCantidadSpan.innerText = cantidadVariante;
+        }
+    });
+    varianteMas.addEventListener('click', () => {
+        if (cantidadVariante < 99) {
+            cantidadVariante++;
+            varianteCantidadSpan.innerText = cantidadVariante;
+        }
+    });
+
+    // Cerrar modal
+    closeModal.onclick = () => { modal.style.display = 'none'; };
+    window.onclick = (event) => { if (event.target === modal) modal.style.display = 'none'; };
+
+    // ==================== INICIALIZAR PRODUCTOS ====================
+    document.querySelectorAll('.btn-seleccionar').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const card = btn.closest('.producto-card');
+            const productoId = card.dataset.id;
+            const productoNombre = card.dataset.nombre;
+            const precioBase = parseFloat(card.dataset.precio) || 0;
+            productoSeleccionado = { id: productoId, nombre: productoNombre, precioBase: precioBase };
+            await cargarVariantes(productoId, productoNombre, precioBase);
+        });
+    });
+
+    agregarCarritoBtn.addEventListener('click', agregarAlCarrito);
+
+    // ==================== FINALIZAR PEDIDO (CORREGIDO Y ROBUSTO) ====================
+    finalizarBtn.addEventListener('click', async () => {
+        if (carrito.length === 0) {
+            mostrarNotificacion('No hay productos en el pedido', 'error');
+            return;
+        }
+
+        const mesa = mesaSelect.value;
+        // Sanitizar cada item para asegurar que sea serializable
+        const items = carrito.map(item => {
+            // Asegurar que todos los campos tengan valores válidos
+            return {
+                nombre: String(item.producto_nombre || ''),
+                variante_nombre: String(item.variante_nombre || ''),
+                variante_id: (typeof item.variante_id === 'number' && !isNaN(item.variante_id)) ? item.variante_id : 0,
+                precio: (typeof item.precio === 'number' && !isNaN(item.precio)) ? item.precio : 0,
+                cantidad: (typeof item.cantidad === 'number' && !isNaN(item.cantidad)) ? item.cantidad : 1
+            };
+        });
+        
+        // Calcular total
+        const total = items.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+        console.log('Items antes de enviar:', items);
+        // Intentar serializar y verificar en consola
+        const itemsJson = JSON.stringify(items);
+        console.log('Enviando pedido:', { mesa, items, total, itemsJson });
+        
+        const formData = new FormData();
+        formData.append('mesa', mesa);
+        formData.append('items', itemsJson);
+        formData.append('total', total.toFixed(2));
+
+        try {
+            const response = await fetch('/cafeteria', {
+                method: 'POST',
+                body: formData
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 200)}`);
+            }
+            const html = await response.text();
+            document.open();
+            document.write(html);
+            document.close();
+        } catch (error) {
+            console.error('Error al finalizar pedido:', error);
+            mostrarNotificacion('Error al enviar el pedido: ' + error.message, 'error');
+        }
+    });
+</script>
+{% endblock %}

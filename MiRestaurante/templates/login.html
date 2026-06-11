@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Mi Restaurante</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #bc6c25 0%, #9c5211 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+        .login-container {
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+            animation: fadeInUp 0.5s ease;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .login-header {
+            background: #fef7e8;
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid #e0c8a8;
+        }
+        .login-header i {
+            font-size: 3rem;
+            color: #bc6c25;
+            margin-bottom: 0.5rem;
+        }
+        .login-header h2 {
+            color: #5e3a1c;
+            font-weight: 700;
+        }
+        .login-body {
+            padding: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #5e3a1c;
+        }
+        .form-group i {
+            margin-right: 8px;
+            color: #bc6c25;
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            border: 1px solid #e2cfb5;
+            border-radius: 60px;
+            font-size: 1rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #bc6c25;
+            box-shadow: 0 0 0 3px rgba(188,108,37,0.2);
+        }
+        .btn-login {
+            width: 100%;
+            background: #bc6c25;
+            color: white;
+            border: none;
+            padding: 0.9rem;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .btn-login:hover {
+            background: #9c5211;
+            transform: scale(0.98);
+        }
+        .login-footer {
+            text-align: center;
+            padding: 1rem 2rem 2rem;
+            color: #7a501f;
+            font-size: 0.9rem;
+            border-top: 1px solid #e2cfb5;
+        }
+        .demo-credentials {
+            background: #fef4e8;
+            border-radius: 20px;
+            padding: 1rem;
+            margin-top: 1rem;
+            text-align: left;
+        }
+        .demo-credentials p {
+            margin: 5px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <div class="login-header">
+        <i class="fas fa-utensils"></i>
+        <h2>Bienvenido al Sistema</h2>
+        <p>Gestión profesional de restaurante y cafetería</p>
+    </div>
+    <div class="login-body">
+        <form method="POST">
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Usuario</label>
+                <input type="text" name="username" class="form-control" placeholder="Ingresa tu usuario" required autofocus>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Contraseña</label>
+                <input type="password" name="password" class="form-control" placeholder="Contraseña" required>
+            </div>
+            <button type="submit" class="btn-login"><i class="fas fa-sign-in-alt"></i> Ingresar al sistema</button>
+        </form>
+        <div class="demo-credentials">
+            <p><i class="fas fa-info-circle"></i> <strong>Credenciales de prueba:</strong></p>
+            <p>👑 Admin: <code>admin</code> / <code>admin123</code></p>
+            <p>👤 Camarero: <code>camarero</code> / <code>camarero123</code> (si lo has registrado)</p>
+        </div>
+    </div>
+    <div class="login-footer">
+        &copy; 2025 Mi Restaurante - Todos los derechos reservados
+    </div>
+</div>
+</body>
+</html>

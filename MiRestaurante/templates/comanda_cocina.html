@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<!--
+    ========================================================================
+    COMANDA DE COCINA - SISTEMA PROFESIONAL v15.2
+    ========================================================================
+    Mismo diseño que el ticket del cliente, soporta pedidos múltiples.
+    ========================================================================
+-->
+{% autoescape true %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Comanda Cocina{% if pedido_multiple %} Múltiple{% else %} #{{ pedido.id }}{% endif %}</title>
+    <style>
+        /* (mismos estilos que en ticket.html, copia exactamente los mismos) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        body {
+            background: linear-gradient(145deg, #e9e2d5 0%, #ddd0be 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 1.5rem;
+        }
+        .ticket {
+            max-width: 80mm;
+            width: 100%;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.4);
+            padding: 1.2rem 1rem 1.5rem;
+        }
+        .ticket-header {
+            text-align: center;
+            border-bottom: 2px dashed #bc6c25;
+            margin-bottom: 1rem;
+            padding-bottom: 0.6rem;
+        }
+        .ticket-header h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #bc6c25;
+            font-family: 'Segoe UI', monospace;
+        }
+        .ticket-header p {
+            font-size: 0.75rem;
+            color: #5e3a1c;
+        }
+        .ticket-body {
+            margin: 0.5rem 0;
+        }
+        .tipo-pedido {
+            font-size: 1rem;
+            font-weight: bold;
+            background: #fef4e8;
+            display: inline-block;
+            padding: 0.3rem 1.2rem;
+            border-radius: 60px;
+            margin: 0.4rem auto;
+            color: #5e3a1c;
+            border: 1px solid #e2cfb5;
+        }
+        .segundo-grande {
+            font-size: 1.9rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin: 0.8rem 0;
+            background: #fff4e8;
+            padding: 0.4rem;
+            border-radius: 20px;
+            border-left: 6px solid #bc6c25;
+            border-right: 6px solid #bc6c25;
+        }
+        .ticket-line {
+            border-top: 1px dashed #c0a080;
+            margin: 0.8rem 0;
+        }
+        .cantidad-linea {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.4rem 0;
+        }
+        .total {
+            font-size: 1.3rem;
+            font-weight: 800;
+            text-align: right;
+            margin-top: 0.6rem;
+            border-top: 1px dashed #bc6c25;
+            padding-top: 0.5rem;
+        }
+        .mesa-info {
+            margin-top: 1rem;
+            font-size: 1.4rem;
+            font-weight: 800;
+            text-align: center;
+            background: #fff8f0;
+            border-radius: 28px;
+            padding: 0.6rem;
+            border: 2px solid #bc6c25;
+            color: #bc6c25;
+        }
+        .ticket-footer {
+            text-align: center;
+            font-size: 0.7rem;
+            margin-top: 1rem;
+            color: #8b6946;
+            border-top: 1px dotted #eedbc8;
+            padding-top: 0.6rem;
+        }
+        button {
+            margin-top: 1rem;
+            width: 100%;
+            background: #bc6c25;
+            border: none;
+            padding: 10px;
+            border-radius: 60px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.6rem 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: #fff8f0;
+            padding: 0.3rem 0.5rem;
+            border-radius: 12px;
+        }
+        @media print {
+            body { background: white; padding: 0; }
+            .ticket { box-shadow: none; padding: 0.2rem; }
+            button { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="ticket">
+    <div class="ticket-header">
+        <h2>🍳 COCINA</h2>
+        <p>
+            {% if pedido_multiple %}
+                {{ fecha }} · {{ hora }}
+            {% else %}
+                {{ pedido.fecha }} · {{ pedido.hora }}
+            {% endif %}
+        </p>
+        <p style="font-size:0.7rem;">
+            {% if pedido_multiple %}
+                Pedido #{{ pedido_ids|join(', ') }}
+            {% else %}
+                Pedido #{{ pedido.id }}
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="ticket-body">
+        {% if pedido_multiple %}
+            {% for item in items %}
+            <div class="item-row">
+                <span>{{ item.cantidad }} x {{ item.nombre }} ({{ item.tipo }})</span>
+                <span>{{ "%.2f"|format(item.precio_unitario * item.cantidad) }} Bs</span>
+            </div>
+            {% endfor %}
+            <div class="ticket-line"></div>
+            <div class="total">TOTAL: {{ "%.2f"|format(total) }} Bs</div>
+        {% elif pedido.cantidad and pedido.segundo_elegido %}
+            <!-- Almuerzo simple -->
+            <div style="text-align:center;">
+                <div class="tipo-pedido">
+                    {% if pedido.tipo_pedido == 'completo' %}🍽️ ALMUERZO COMPLETO{% else %}🥩 SEGUNDO SUELTO{% endif %}
+                </div>
+            </div>
+            <div class="segundo-grande">{{ pedido.segundo_elegido|upper }}</div>
+            <div class="cantidad-linea">
+                <span>Cantidad:</span>
+                <span>{{ pedido.cantidad }} × {{ "%.2f"|format(pedido.precio_unitario) }} Bs</span>
+            </div>
+            <div class="ticket-line"></div>
+            <div class="total">TOTAL: {{ "%.2f"|format(pedido.cantidad * pedido.precio_unitario) }} Bs</div>
+        {% else %}
+            <!-- Cafetería -->
+            <div style="text-align:center;"><div class="tipo-pedido">☕ CAFETERÍA</div></div>
+            <div class="ticket-line"></div>
+            {% set items = pedido.items | from_json %}
+            {% for item in items %}
+            <div class="item-row">
+                <span>{{ item.nombre }}</span>
+                <span>{{ "%.2f"|format(item.precio) }} Bs</span>
+            </div>
+            {% endfor %}
+            <div class="ticket-line"></div>
+            <div class="total">TOTAL: {{ "%.2f"|format(pedido.total) }} Bs</div>
+        {% endif %}
+    </div>
+
+    <div class="mesa-info">
+        {% if pedido_multiple %}
+            {% if para_llevar %}📦 PARA LLEVAR{% else %}🪑 MESA {{ mesa }}{% endif %}
+        {% elif pedido %}
+            {% if pedido.para_llevar %}📦 PARA LLEVAR{% else %}🪑 MESA {{ pedido.numero }}{% endif %}
+        {% endif %}
+    </div>
+
+    <div class="ticket-footer">
+        ✔ Preparar y enviar
+    </div>
+</div>
+<button onclick="window.print()">🖨️ IMPRIMIR COMANDA</button>
+<script>window.onload = () => window.print();</script>
+</body>
+</html>
+{% endautoescape %}

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<!--
+    ========================================================================
+    COMANDA DE BARRA - CAFETERÍA v10.0
+    ========================================================================
+    Comanda para la barra/cafetería. Mismo diseño que el ticket del cliente,
+    adaptado para mostrar los productos pedidos.
+    ========================================================================
+-->
+{% autoescape true %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Comanda Barra #{{ pedido.id }}</title>
+    <style>
+        /* ========== RESET Y ESTILOS BASE ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* ========== CUERPO ========== */
+        body {
+            background: #e9e2d5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 1rem;
+        }
+
+        /* ========== TICKET / COMANDA ========== */
+        .ticket {
+            max-width: 80mm;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.3);
+            padding: 1.2rem 1rem 1.5rem 1rem;
+            text-align: center;
+        }
+
+        /* Cabecera */
+        .ticket-header {
+            border-bottom: 2px dashed #bc6c25;
+            margin-bottom: 1rem;
+            padding-bottom: 0.6rem;
+        }
+        .ticket-header h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #bc6c25;
+            letter-spacing: 1px;
+        }
+        .ticket-header p {
+            font-size: 0.75rem;
+            color: #5e3a1c;
+            margin-top: 0.2rem;
+        }
+
+        /* Lista de productos */
+        .items-list {
+            margin: 0.8rem 0;
+        }
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.4rem 0;
+            font-size: 0.9rem;
+        }
+        .item-nombre {
+            text-align: left;
+        }
+        .item-precio {
+            text-align: right;
+            font-weight: bold;
+        }
+
+        /* Línea separadora */
+        .ticket-line {
+            border-top: 1px dashed #c0a080;
+            margin: 0.8rem 0;
+        }
+
+        /* Total */
+        .total {
+            font-size: 1.3rem;
+            font-weight: 800;
+            text-align: right;
+            margin-top: 0.6rem;
+            margin-bottom: 0.2rem;
+            border-top: 1px dashed #bc6c25;
+            padding-top: 0.5rem;
+        }
+
+        /* Información de mesa / para llevar */
+        .mesa-info {
+            margin-top: 1rem;
+            font-size: 1.4rem;
+            font-weight: 800;
+            text-align: center;
+            background: #fff8f0;
+            border-radius: 28px;
+            padding: 0.6rem;
+            border: 2px solid #bc6c25;
+            color: #bc6c25;
+        }
+
+        /* Pie */
+        .ticket-footer {
+            text-align: center;
+            font-size: 0.7rem;
+            margin-top: 1rem;
+            color: #8b6946;
+            border-top: 1px dotted #eedbc8;
+            padding-top: 0.6rem;
+        }
+
+        /* Botón (solo en pantalla) */
+        button {
+            margin-top: 1rem;
+            width: 100%;
+            background: #bc6c25;
+            border: none;
+            padding: 10px;
+            border-radius: 60px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        /* Reglas de impresión */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .ticket {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 0.2rem;
+                max-width: 100%;
+            }
+            button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="ticket">
+    <!-- CABECERA -->
+    <div class="ticket-header">
+        <h2>☕ BARRA</h2>
+        <p>{{ pedido.fecha }} · {{ pedido.hora }} | Pedido #{{ pedido.id }}</p>
+    </div>
+
+    <!-- LISTA DE PRODUCTOS -->
+    <div class="items-list">
+        {% set items = pedido.items | from_json %}
+        {% for item in items %}
+        <div class="item-row">
+            <span class="item-nombre">{{ item.nombre }}</span>
+            <span class="item-precio">{{ "%.2f"|format(item.precio) }} Bs</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="ticket-line"></div>
+
+    <!-- TOTAL -->
+    <div class="total">
+        TOTAL: {{ "%.2f"|format(pedido.total) }} Bs
+    </div>
+
+    <!-- MESA O PARA LLEVAR -->
+    <div class="mesa-info">
+        {% if pedido.mesa_id and pedido.mesa_id != 0 %}
+            🪑 MESA {{ pedido.numero }}
+        {% else %}
+            📦 PARA LLEVAR
+        {% endif %}
+    </div>
+
+    <!-- PIE -->
+    <div class="ticket-footer">
+        ✔ Preparar y servir | Barra
+    </div>
+</div>
+
+<!-- BOTÓN DE IMPRESIÓN -->
+<button onclick="window.print()">🖨️ IMPRIMIR COMANDA</button>
+
+<!-- IMPRESIÓN AUTOMÁTICA AL CARGAR -->
+<script>
+    window.onload = () => window.print();
+</script>
+</body>
+</html>
+{% endautoescape %}

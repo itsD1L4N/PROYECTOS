@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<!--
+    ========================================================================
+    TICKET DE CLIENTE - SISTEMA PROFESIONAL v16.0 (ULTRA MEJORADO)
+    ========================================================================
+    - Diseño moderno con gradientes y sombras.
+    - Soporte completo para pedidos múltiples y cafetería con variantes.
+    - Botón para copiar número de pedido.
+    - Apertura robusta de comanda con fallback.
+    - Optimizado para impresión térmica (80mm).
+    ========================================================================
+-->
+{% autoescape true %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="theme-color" content="#bc6c25">
+    <meta name="description" content="Ticket de pedido profesional para restaurante">
+    <title>Ticket {% if pedido_multiple %}Múltiple{% else %}#{{ pedido.id }}{% endif %} - Mi Restaurante</title>
+    <style>
+        /* ========== RESET Y ESTILOS GLOBALES ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        body {
+            background: linear-gradient(145deg, #e9e2d5 0%, #ddd0be 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', 'Lucida Sans Typewriter', monospace;
+            padding: 1.5rem;
+            margin: 0;
+        }
+
+        /* ========== CONTENEDOR PRINCIPAL ========== */
+        .ticket {
+            max-width: 80mm;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.6);
+            padding: 1.2rem 1rem 1.5rem;
+            transition: transform 0.2s;
+        }
+        .ticket:hover {
+            transform: translateY(-3px);
+        }
+
+        /* ========== ENCABEZADO ========== */
+        .ticket-header {
+            text-align: center;
+            border-bottom: 2px dashed #bc6c25;
+            margin-bottom: 1rem;
+            padding-bottom: 0.6rem;
+        }
+        .ticket-header h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #bc6c25;
+            text-shadow: 0 1px 0 #ffe0b5;
+            font-family: 'Segoe UI', 'Courier New', monospace;
+        }
+        .ticket-header p {
+            font-size: 0.7rem;
+            color: #5e3a1c;
+            margin-top: 0.2rem;
+        }
+        .order-id {
+            display: inline-block;
+            background: #fef4e8;
+            padding: 0.2rem 0.6rem;
+            border-radius: 40px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            margin-top: 0.3rem;
+        }
+        .copy-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+            margin-left: 0.3rem;
+            color: #bc6c25;
+        }
+
+        /* ========== CUERPO ========== */
+        .ticket-body {
+            margin: 0.5rem 0;
+        }
+
+        /* Tipo de pedido (etiqueta) */
+        .tipo-pedido {
+            font-size: 0.9rem;
+            font-weight: bold;
+            background: #fef4e8;
+            display: inline-block;
+            padding: 0.2rem 1rem;
+            border-radius: 60px;
+            margin: 0.3rem auto;
+            color: #5e3a1c;
+            border: 1px solid #e2cfb5;
+        }
+
+        /* Segundo grande (almuerzo simple) */
+        .segundo-grande {
+            font-size: 1.8rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin: 0.6rem 0;
+            background: #fff4e8;
+            padding: 0.3rem;
+            border-radius: 20px;
+            border-left: 6px solid #bc6c25;
+            border-right: 6px solid #bc6c25;
+            text-align: center;
+        }
+
+        /* Línea separadora */
+        .ticket-line {
+            border-top: 1px dashed #c0a080;
+            margin: 0.6rem 0;
+        }
+
+        /* Fila de cantidad (almuerzo simple) */
+        .cantidad-linea {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.4rem 0;
+            font-size: 0.9rem;
+        }
+
+        /* Total */
+        .total {
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-align: right;
+            margin-top: 0.5rem;
+            border-top: 1px dashed #bc6c25;
+            padding-top: 0.5rem;
+        }
+
+        /* Mesa / Para llevar */
+        .mesa-info {
+            margin-top: 1rem;
+            font-size: 1.3rem;
+            font-weight: 800;
+            text-align: center;
+            background: #fff8f0;
+            border-radius: 28px;
+            padding: 0.5rem;
+            border: 2px solid #bc6c25;
+            color: #bc6c25;
+        }
+
+        /* Pie de ticket */
+        .ticket-footer {
+            text-align: center;
+            font-size: 0.65rem;
+            margin-top: 1rem;
+            color: #8b6946;
+            border-top: 1px dotted #eedbc8;
+            padding-top: 0.5rem;
+        }
+
+        /* Items (pedido múltiple y cafetería) */
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.5rem 0;
+            font-size: 0.95rem;
+            font-weight: bold;
+            background: #fff8f0;
+            padding: 0.3rem 0.5rem;
+            border-radius: 16px;
+            word-break: break-word;
+        }
+        .item-nombre {
+            text-align: left;
+            flex: 2;
+        }
+        .item-precio {
+            text-align: right;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        /* Botones de acción (solo pantalla) */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+        button {
+            background: #bc6c25;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 60px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s;
+            font-family: inherit;
+        }
+        button:active {
+            transform: scale(0.96);
+        }
+        .btn-secundary {
+            background: #6c757d;
+        }
+
+        /* Reglas de impresión */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .ticket {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 0.2rem;
+                max-width: 100%;
+            }
+            .button-group {
+                display: none;
+            }
+            button {
+                display: none;
+            }
+            .mesa-info {
+                border: 2px solid #000;
+                background: #f0f0f0;
+            }
+            .segundo-grande {
+                background: #f0f0f0;
+                border-left: 6px solid #aaa;
+                border-right: 6px solid #aaa;
+            }
+        }
+
+        /* Animación de carga */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .ticket {
+            animation: fadeInUp 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+<div class="ticket">
+    <div class="ticket-header">
+        <h2>🍽️ MI RESTAURANTE</h2>
+        <p>
+            {% if pedido_multiple %}
+                {{ fecha }} · {{ hora }}
+            {% else %}
+                {{ pedido.fecha }} · {{ pedido.hora }}
+            {% endif %}
+        </p>
+        <div>
+            <span class="order-id">
+                {% if pedido_multiple %}
+                    Pedido #{{ pedido_ids|join(', ') }}
+                {% else %}
+                    Ticket N° {{ pedido.id }}
+                {% endif %}
+            </span>
+            <button class="copy-btn" id="copiarPedidoBtn" title="Copiar número de pedido">📋</button>
+        </div>
+        {% if session.nombre %}
+        <p style="font-size:0.65rem; margin-top:0.2rem;">Atendido por: {{ session.nombre }}</p>
+        {% endif %}
+    </div>
+
+    <div class="ticket-body">
+        {% if pedido_multiple %}
+            <!-- PEDIDO MÚLTIPLE (combinado) -->
+            {% for item in items %}
+            <div class="item-row">
+                <span class="item-nombre">{{ item.cantidad }} x {{ item.nombre }} ({{ item.tipo }})</span>
+                <span class="item-precio">{{ "%.2f"|format(item.precio_unitario * item.cantidad) }} Bs</span>
+            </div>
+            {% endfor %}
+            <div class="ticket-line"></div>
+            <div class="total">TOTAL: {{ "%.2f"|format(total) }} Bs</div>
+
+        {% elif tipo == 'almuerzo' %}
+            <!-- ALMUERZO SIMPLE -->
+            <div style="text-align:center;">
+                <div class="tipo-pedido">
+                    {% if pedido.tipo_pedido == 'completo' %}🍽️ ALMUERZO COMPLETO{% else %}🥩 SEGUNDO SUELTO{% endif %}
+                </div>
+            </div>
+            <div class="segundo-grande">{{ pedido.segundo_elegido|upper }}</div>
+            <div class="cantidad-linea">
+                <span>Cantidad:</span>
+                <span>{{ pedido.cantidad }} × {{ "%.2f"|format(pedido.precio_unitario) }} Bs</span>
+            </div>
+            <div class="ticket-line"></div>
+            <div class="total">TOTAL: {{ "%.2f"|format(pedido.cantidad * pedido.precio_unitario) }} Bs</div>
+
+       {% else %}
+    <!-- CAFETERÍA (con manejo de errores) -->
+    <div style="text-align:center;">
+        <div class="tipo-pedido">☕ CAFETERÍA</div>
+    </div>
+    <div class="ticket-line"></div>
+    {% set items_cafe_raw = pedido.items %}
+    {% if items_cafe_raw %}
+        {% set items_cafe = items_cafe_raw | from_json %}
+        {% if items_cafe is iterable and items_cafe | length > 0 %}
+            {% for item in items_cafe %}
+            <div class="item-row">
+                <span class="item-nombre">
+                    {{ item.cantidad }} x {{ item.nombre }}
+                    {% if item.variante_nombre %}({{ item.variante_nombre }}){% endif %}
+                </span>
+                <span class="item-precio">{{ "%.2f"|format(item.precio * item.cantidad) }} Bs</span>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="item-row">No hay productos en este pedido</div>
+        {% endif %}
+    {% else %}
+        <div class="item-row">No hay productos en este pedido</div>
+    {% endif %}
+    <div class="ticket-line"></div>
+    <div class="total">TOTAL: {{ "%.2f"|format(pedido.total) }} Bs</div>
+{% endif %}
+    </div>
+
+    <!-- INFORMACIÓN DE MESA / PARA LLEVAR -->
+    <div class="mesa-info">
+        {% if pedido_multiple %}
+            {% if para_llevar %}📦 PARA LLEVAR{% else %}🪑 MESA {{ mesa }}{% endif %}
+        {% elif pedido %}
+            {% if pedido.para_llevar %}📦 PARA LLEVAR{% else %}🪑 MESA {{ pedido.numero }}{% endif %}
+        {% endif %}
+    </div>
+
+    <div class="ticket-footer">
+        ¡Gracias por su visita! ✨ Vuelva pronto ✨<br>
+        <span style="font-size:0.55rem;">Horario: Almuerzo 12-14h · Cafetería 14-20h</span><br>
+        <span style="font-size:0.55rem;">✨ Calidad y sabor que nos distinguen ✨</span>
+    </div>
+</div>
+
+<!-- BOTONES DE ACCIÓN -->
+<div class="button-group">
+    <button onclick="window.print()">🖨️ IMPRIMIR TICKET</button>
+    <button onclick="window.location.href='/'" class="btn-secundary">🏠 VOLVER AL INICIO</button>
+</div>
+
+<!-- CONTENEDOR DE DATOS PARA JAVASCRIPT (sin inyección directa) -->
+<div id="datosComanda" style="display:none;"
+     data-pedido-multiple="{{ pedido_multiple | tojson }}"
+     data-pedido-ids="{{ pedido_ids | tojson }}"
+     data-tipo="{{ tipo | tojson }}"
+     data-pedido-id="{{ pedido.id if pedido else '' }}"
+     data-items="{{ items | tojson }}"
+     data-total="{{ total | tojson }}"
+     data-mesa="{{ mesa | tojson }}"
+     data-para-llevar="{{ para_llevar | tojson }}"
+     data-fecha="{{ fecha | tojson }}"
+     data-hora="{{ hora | tojson }}">
+</div>
+
+<script>
+    (function() {
+        'use strict';
+
+        // ========== COPIA DEL NÚMERO DE PEDIDO ==========
+        const copyBtn = document.getElementById('copiarPedidoBtn');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', function() {
+                let textoPedido = '';
+                const orderIdElem = document.querySelector('.order-id');
+                if (orderIdElem) {
+                    textoPedido = orderIdElem.innerText.trim();
+                }
+                if (textoPedido) {
+                    navigator.clipboard.writeText(textoPedido).then(() => {
+                        // Feedback visual breve
+                        const original = copyBtn.innerHTML;
+                        copyBtn.innerHTML = '✓';
+                        setTimeout(() => { copyBtn.innerHTML = original; }, 1500);
+                    }).catch(err => console.error('Error al copiar:', err));
+                }
+            });
+        }
+
+        // ========== APERTURA AUTOMÁTICA DE COMANDA ==========
+        const datosDiv = document.getElementById('datosComanda');
+        if (!datosDiv) {
+            console.warn("No se encontró el contenedor de datos de comanda.");
+            return;
+        }
+
+        // Leer atributos
+        const pedidoMultiple = datosDiv.getAttribute('data-pedido-multiple') === 'true';
+        const pedidoIdsStr = datosDiv.getAttribute('data-pedido-ids');
+        const tipo = datosDiv.getAttribute('data-tipo') || '';
+        const pedidoId = datosDiv.getAttribute('data-pedido-id');
+        const itemsStr = datosDiv.getAttribute('data-items');
+        const totalStr = datosDiv.getAttribute('data-total');
+        const mesaStr = datosDiv.getAttribute('data-mesa');
+        const paraLlevarStr = datosDiv.getAttribute('data-para-llevar');
+        const fechaStr = datosDiv.getAttribute('data-fecha');
+        const horaStr = datosDiv.getAttribute('data-hora');
+
+        let comandaUrl = "";
+        
+        if (pedidoMultiple && pedidoIdsStr) {
+            try {
+                const pedidoIds = JSON.parse(pedidoIdsStr);
+                if (pedidoIds && pedidoIds.length > 0) {
+                    const items = JSON.parse(itemsStr || '[]');
+                    const total = JSON.parse(totalStr || '0');
+                    const mesa = JSON.parse(mesaStr || '0');
+                    const paraLlevar = JSON.parse(paraLlevarStr || 'false');
+                    const fecha = JSON.parse(fechaStr || '""');
+                    const hora = JSON.parse(horaStr || '""');
+                    
+                    fetch('/comanda_multiple', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            items: items,
+                            total: total,
+                            mesa: mesa,
+                            para_llevar: paraLlevar,
+                            fecha: fecha,
+                            hora: hora,
+                            pedido_ids: pedidoIds
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        return response.text();
+                    })
+                    .then(html => {
+                        const comandaWindow = window.open();
+                        if (comandaWindow) {
+                            comandaWindow.document.write(html);
+                            comandaWindow.document.close();
+                        } else {
+                            console.warn("No se pudo abrir ventana para comanda (bloqueada)");
+                        }
+                    })
+                    .catch(err => console.error("Error al abrir comanda múltiple:", err));
+                }
+            } catch(e) {
+                console.error("Error al procesar datos de comanda múltiple:", e);
+            }
+        } else if (tipo && pedidoId) {
+            comandaUrl = "/comanda/" + tipo + "/" + pedidoId;
+            const comandaWindow = window.open(comandaUrl, "_blank");
+            if (!comandaWindow) {
+                console.warn("El navegador bloqueó la ventana de la comanda.");
+            }
+        }
+
+        // Si no se pudo abrir automáticamente, mostrar un pequeño aviso (opcional)
+        if (!comandaUrl && !pedidoMultiple) {
+            console.log("No se generó comanda para este ticket.");
+        }
+    })();
+</script>
+</body>
+</html>
+{% endautoescape %}

@@ -1,0 +1,223 @@
+/* ========== ESTILOS GLOBALES PROFESIONALES ========== */
+:root {
+    --primary: #bc6c25;
+    --primary-dark: #9c5211;
+    --secondary: #2c3e50;
+    --light-bg: #fef7e8;
+    --white: #ffffff;
+    --gray: #5e3a1c;
+    --shadow: 0 8px 20px rgba(0,0,0,0.05);
+    --radius: 32px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--light-bg);
+    color: #2c2b28;
+    line-height: 1.5;
+}
+
+/* ========== HEADER ========== */
+header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.header-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.logo i {
+    font-size: 2rem;
+}
+
+.logo h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.slogan {
+    font-weight: 300;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.2);
+    padding: 0.4rem 1rem;
+    border-radius: 60px;
+}
+
+.rol-badge {
+    background: #ffd966;
+    color: var(--primary-dark);
+    padding: 0.2rem 0.6rem;
+    border-radius: 40px;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.3rem 0;
+    border-bottom: 2px solid transparent;
+    transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+nav a:hover {
+    border-bottom-color: #ffd966;
+}
+
+/* ========== MAIN ========== */
+main {
+    min-height: calc(100vh - 140px);
+}
+
+.container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* ========== DASHBOARD (index) ========== */
+.dashboard-welcome {
+    margin-bottom: 2rem;
+}
+
+.welcome-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 1.8rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+
+.index-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.dashboard-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 1.8rem;
+    text-decoration: none;
+    color: var(--gray);
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    border: 1px solid #f0e2d0;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 30px -10px rgba(188,108,37,0.2);
+}
+
+.dashboard-card h3 {
+    font-size: 1.4rem;
+    margin: 0.5rem 0;
+}
+
+.btn-action {
+    display: inline-block;
+    background: var(--primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 60px;
+    width: fit-content;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.info-panel {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 1rem;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+/* ========== PAGE HEADER ========== */
+.page-header {
+    margin-bottom: 1.8rem;
+}
+
+.page-header h2 {
+    color: var(--primary-dark);
+    margin-bottom: 0.3rem;
+}
+
+/* ========== FOOTER ========== */
+footer {
+    background: #2c2b28;
+    color: #ccc;
+    text-align: center;
+    padding: 1rem;
+    margin-top: 3rem;
+    font-size: 0.8rem;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .header-container {
+        flex-direction: column;
+        text-align: center;
+    }
+    nav {
+        justify-content: center;
+    }
+    .container {
+        padding: 1rem;
+    }
+}

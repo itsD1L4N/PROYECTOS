@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Configurar menú del día</h2>
+<form method="POST">
+    <div class="form-group"><label>Entrada</label><input type="text" name="entrada" value="{{ menu.entrada if menu else '' }}" required></div>
+    <div class="form-group"><label>Sopa</label><input type="text" name="sopa" value="{{ menu.sopa if menu else '' }}" required></div>
+    <div class="form-group"><label>Segundo A (nombre)</label><input type="text" name="segundo1_nombre" value="{{ menu.segundo1_nombre if menu else 'Pollo asado' }}" required></div>
+    <div class="form-group"><label>Stock A</label><input type="number" name="segundo1_stock" value="{{ menu.segundo1_stock if menu else 20 }}" required></div>
+    <div class="form-group"><label>Segundo B (nombre)</label><input type="text" name="segundo2_nombre" value="{{ menu.segundo2_nombre if menu else 'Pescado a la plancha' }}" required></div>
+    <div class="form-group"><label>Stock B</label><input type="number" name="segundo2_stock" value="{{ menu.segundo2_stock if menu else 15 }}" required></div>
+    <div class="form-group"><label>Salida</label><input type="text" name="salida" value="{{ menu.salida if menu else 'Fruta del tiempo' }}" required></div>
+    <div class="form-group"><label>Precio almuerzo completo (Bs)</label><input type="number" step="0.5" name="precio_almuerzo" value="{{ menu.precio_almuerzo_completo if menu else 10 }}" required></div>
+    <div class="form-group"><label>Precio segundo suelto - A (Bs)</label><input type="number" step="0.5" name="precio_suelto1" value="{{ menu.precio_segundo_suelto1 if menu else 6 }}" required></div>
+    <div class="form-group"><label>Precio segundo suelto - B (Bs)</label><input type="number" step="0.5" name="precio_suelto2" value="{{ menu.precio_segundo_suelto2 if menu else 6 }}" required></div>
+    <button type="submit" class="btn-primary">Guardar menú</button>
+</form>
+{% endblock %}

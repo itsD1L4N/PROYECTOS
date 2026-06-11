@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comanda Cocina #{{ pedido.id }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #f0ebe3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            padding: 1rem;
+        }
+        .comanda {
+            max-width: 80mm;
+            background: white;
+            padding: 1.2rem;
+            border-radius: 16px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .header {
+            border-bottom: 2px dashed #bc6c25;
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.5rem;
+        }
+        .header h2 {
+            font-family: 'Inter', sans-serif;
+            color: #bc6c25;
+            font-size: 1.3rem;
+        }
+        .tipo-pedido {
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: #fef4e8;
+            display: inline-block;
+            padding: 0.3rem 1.2rem;
+            border-radius: 40px;
+            margin: 0.3rem 0;
+        }
+        .segundo-grande {
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 0.8rem 0;
+            background: #fff4e8;
+            padding: 0.3rem;
+            border-radius: 12px;
+        }
+        .cantidad {
+            font-size: 1rem;
+            margin: 0.4rem 0;
+        }
+        .ticket-line {
+            border-top: 1px dashed #aaa;
+            margin: 0.8rem 0;
+        }
+        .total {
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 0.5rem;
+        }
+        .mesa-info {
+            margin-top: 1rem;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-top: 2px solid #bc6c25;
+            padding-top: 0.6rem;
+            background: #fff8f0;
+            border-radius: 12px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.7rem;
+            margin-top: 1rem;
+            color: #6b5a4a;
+        }
+        button {
+            margin-top: 1rem;
+            width: 100%;
+            background: #bc6c25;
+            border: none;
+            padding: 8px;
+            border-radius: 40px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        @media print {
+            body { background: white; }
+            button { display: none; }
+            .comanda { box-shadow: none; margin:0; padding:0; }
+        }
+    </style>
+</head>
+<body>
+<div class="comanda">
+    <div class="header">
+        <h2>🍳 COCINA</h2>
+        <p>Pedido #{{ pedido.id }} | {{ pedido.hora }}</p>
+    </div>
+    <div class="tipo-pedido">
+        {% if pedido.tipo_pedido == 'completo' %}ALMUERZO COMPLETO{% else %}SEGUNDO SUELTO{% endif %}
+    </div>
+    <div class="segundo-grande">{{ pedido.segundo_elegido|upper if pedido.segundo_elegido else 'SEGUNDO' }}</div>
+    <div class="cantidad">{{ pedido.cantidad }} x {{ "%.2f"|format(pedido.precio_unitario) }} Bs</div>
+    <div class="ticket-line"></div>
+    <div class="total">TOTAL: {{ "%.2f"|format(pedido.cantidad * pedido.precio_unitario) }} Bs</div>
+    <div class="mesa-info">
+        {% if pedido.para_llevar %}📦 PARA LLEVAR{% else %}MESA {{ pedido.numero }}{% endif %}
+    </div>
+    <div class="footer">✔ Preparar y enviar</div>
+</div>
+<button onclick="window.print()">🖨️ Imprimir comanda</button>
+<script>window.onload = () => window.print();</script>
+</body>
+</html>

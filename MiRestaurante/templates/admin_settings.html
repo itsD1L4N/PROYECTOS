@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h2>⚙️ Configuración del sistema</h2>
+</div>
+<form method="POST" class="form-modern" style="background:white; border-radius:32px; padding:2rem; max-width:500px;">
+    <div class="form-group">
+        <label>Precio del almuerzo (Bs)</label>
+        <input type="number" step="0.01" name="precio_almuerzo" value="{{ precio_almuerzo }}" required class="form-control">
+    </div>
+    <button type="submit" class="btn-primary">Guardar cambios</button>
+</form>
+{% endblock %}

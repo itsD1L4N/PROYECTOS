@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="description" content="Sistema profesional de gestión para restaurante y cafetería">
+    <title>Mi Restaurante Profesional</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome (iconos) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Estilos adicionales embebidos para garantizar consistencia */
+        .alert {
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            border-radius: 50px;
+            font-weight: 500;
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .alert-success { background: #d4edda; color: #155724; border-left: 5px solid #28a745; }
+        .alert-danger { background: #f8d7da; color: #721c24; border-left: 5px solid #dc3545; }
+        .alert-warning { background: #fff3cd; color: #856404; border-left: 5px solid #ffc107; }
+        .alert-info { background: #d1ecf1; color: #0c5460; border-left: 5px solid #17a2b8; }
+        .fade-out {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        /* Estilos para el nuevo header mejorado */
+        .header-container {
+            background: linear-gradient(135deg, #bc6c25 0%, #9c5211 100%);
+            padding: 0.8rem 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-content {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-decoration: none;
+            color: white;
+            transition: transform 0.2s;
+        }
+        .logo-area:hover {
+            transform: scale(1.02);
+        }
+        .logo-icon {
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            backdrop-filter: blur(4px);
+        }
+        .logo-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+        }
+        .logo-text span {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(255,255,255,0.15);
+            padding: 0.4rem 1rem;
+            border-radius: 60px;
+            backdrop-filter: blur(4px);
+        }
+        .user-area i {
+            font-size: 1.2rem;
+        }
+        .user-area .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .user-area .user-role {
+            font-size: 0.7rem;
+            background: #ffd966;
+            color: #9c5211;
+            padding: 0.2rem 0.6rem;
+            border-radius: 40px;
+            font-weight: bold;
+        }
+        nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        nav a {
+            color: #fff3e0;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 0.8rem;
+            border-radius: 40px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        nav a i {
+            font-size: 1rem;
+        }
+        nav a:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            transform: translateY(-2px);
+        }
+        /* Responsive */
+        @media (max-width: 850px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            nav {
+                justify-content: center;
+            }
+            .user-area {
+                margin-top: 0.5rem;
+            }
+        }
+        @media (max-width: 600px) {
+            nav a {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.8rem;
+            }
+            .logo-text h1 {
+                font-size: 1.2rem;
+            }
+            .logo-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <div class="header-content">
+            <a href="/" class="logo-area">
+                <div class="logo-icon">
+    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+</div>
+            </a>
+            <div class="user-area">
+                <i class="fas fa-user-circle"></i>
+                <span class="user-name">{{ session.get('nombre', 'Invitado') }}</span>
+                <span class="user-role">{{ session.get('rol', 'sin rol') }}</span>
+            </div>
+            <nav>
+                <a href="/"><i class="fas fa-home"></i> Inicio</a>
+                <a href="/almuerzo"><i class="fas fa-utensil-spoon"></i> Almuerzo</a>
+                <a href="/cafeteria"><i class="fas fa-mug-hot"></i> Cafetería</a>
+                {% if session.rol == 'admin' %}
+                <a href="/admin/productos"><i class="fas fa-boxes"></i> Productos</a>
+                <a href="/admin/menu"><i class="fas fa-calendar-alt"></i> Menú día</a>
+                <a href="/reportes"><i class="fas fa-chart-line"></i> Reportes</a>
+                {% endif %}
+                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Salir</a>
+            </nav>
+        </div>
+    </div>
+    <main>
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+                            <i class="fas fa-{% if category=='success' %}check-circle{% elif category=='danger' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                            {{ message }}
+                            <button type="button" class="close-alert" onclick="this.parentElement.style.display='none'">&times;</button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2025 Tiago's - Sistema de gestión integral</p>
+        <p><i class="fas fa-print"></i> Tickets térmicos | <i class="fas fa-chart-simple"></i> Reportes en tiempo real</p>
+    </footer>
+    <script>
+        // Auto cerrar alertas después de 4 segundos
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+                alert.classList.add('fade-out');
+                setTimeout(() => alert.style.display = 'none', 500);
+            });
+        }, 4000);
+        
+        // Confirmación para eliminar
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if(!confirm('¿Estás seguro de eliminar este registro?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

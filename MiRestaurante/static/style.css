@@ -1,0 +1,322 @@
+/* ========== FUENTES Y RESET ========== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #fef7e8;  /* crema suave */
+    color: #2c2b28;
+    line-height: 1.5;
+}
+
+/* ========== HEADER ========== */
+header {
+    background: linear-gradient(135deg, #bc6c25 0%, #9c5211 100%);
+    color: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+header h1 {
+    font-size: 1.8rem;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+nav {
+    margin-top: 0.8rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+nav a {
+    color: #fff3e0;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.3rem 0;
+    border-bottom: 2px solid transparent;
+    transition: 0.2s;
+}
+
+nav a:hover {
+    border-bottom-color: #ffd966;
+    color: white;
+}
+
+/* ========== MAIN ========== */
+main {
+    max-width: 1300px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+/* ========== BOTONES GRANDES INICIO ========== */
+.index-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    margin-top: 3rem;
+}
+
+.big-btn {
+    background: white;
+    backdrop-filter: blur(2px);
+    border: 1px solid #e0c8a8;
+    border-radius: 40px;
+    padding: 1.5rem 2.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: #9c5211;
+    transition: all 0.2s ease;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.big-btn:hover {
+    transform: translateY(-5px);
+    background: #fffaf2;
+    border-color: #bc6c25;
+    box-shadow: 0 20px 30px -10px rgba(188,108,37,0.2);
+    color: #bc6c25;
+}
+
+/* ========== TARJETAS DE MENÚ ========== */
+.menu-card {
+    background: white;
+    border-radius: 32px;
+    padding: 1.8rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    border: 1px solid #f0e2d0;
+}
+
+.menu-card h2 {
+    color: #bc6c25;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.menu-item {
+    background: #fef4e8;
+    padding: 0.8rem;
+    border-radius: 24px;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* ========== FORMULARIOS ========== */
+form {
+    background: white;
+    border-radius: 32px;
+    padding: 2rem;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+label {
+    font-weight: 600;
+    color: #5e3a1c;
+    margin-bottom: 0.3rem;
+    display: block;
+}
+
+select, input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid #e2cfb5;
+    border-radius: 50px;
+    font-size: 1rem;
+    background: #fffcf8;
+    transition: 0.2s;
+}
+
+select:focus, input:focus {
+    outline: none;
+    border-color: #bc6c25;
+    box-shadow: 0 0 0 3px rgba(188,108,37,0.2);
+}
+
+button, .btn-primary {
+    background: #bc6c25;
+    color: white;
+    border: none;
+    padding: 0.9rem 1.8rem;
+    border-radius: 60px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+    width: fit-content;
+}
+
+button:hover {
+    background: #9c5211;
+    transform: scale(0.98);
+}
+
+/* ========== PRODUCTOS CAFETERÍA (TARJETAS) ========== */
+.productos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.producto {
+    background: white;
+    border-radius: 60px;
+    padding: 0.6rem 1.2rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid #eedbc8;
+    transition: all 0.2s;
+}
+
+.producto:hover {
+    transform: translateY(-3px);
+    border-color: #bc6c25;
+}
+
+.producto span {
+    font-weight: 500;
+}
+
+.btn-add {
+    background: #bc6c25;
+    border-radius: 40px;
+    padding: 0.3rem 0.9rem;
+    font-size: 0.9rem;
+}
+
+/* ========== LISTA DE PEDIDO EN CAFETERÍA ========== */
+.pedido-actual {
+    background: #fff7ef;
+    border-radius: 28px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+#lista-pedido {
+    list-style: none;
+    margin: 1rem 0;
+}
+
+#lista-pedido li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px dashed #e2cfb5;
+}
+
+/* ========== TICKET PROFESIONAL (para pantalla e impresión) ========== */
+.ticket-profesional {
+    max-width: 80mm;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    padding: 1.2rem;
+    font-family: 'Courier New', monospace;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+.ticket-profesional h2 {
+    text-align: center;
+    font-size: 1.3rem;
+    font-family: 'Inter', sans-serif;
+    color: #bc6c25;
+    letter-spacing: 1px;
+}
+.ticket-line {
+    border-top: 1px dashed #aaa;
+    margin: 0.8rem 0;
+}
+.ticket-footer {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #666;
+}
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .ticket-profesional, .ticket-profesional * {
+        visibility: visible;
+    }
+    .ticket-profesional {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none;
+        border-radius: 0;
+    }
+    button {
+        display: none;
+    }
+}
+
+/* ========== TABLA DE MESAS (opcional para futuro) ========== */
+.mesa-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px,1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+.mesa-card {
+    background: white;
+    border-radius: 20px;
+    text-align: center;
+    padding: 0.8rem;
+    font-weight: bold;
+    border: 1px solid #eedbc8;
+    transition: 0.1s;
+}
+.mesa-libre {
+    background: #e6f4e8;
+    border-left: 8px solid #2e7d32;
+}
+.mesa-ocupada {
+    background: #ffe6e5;
+    border-left: 8px solid #c62828;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 700px) {
+    main {
+        padding: 0 1rem;
+    }
+    .big-btn {
+        padding: 1rem 1.5rem;
+        font-size: 1.2rem;
+    }
+    .producto {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

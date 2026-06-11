@@ -1,0 +1,578 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="touch-container" id="almuerzoContainer">
+    <div class="menu-header-touch">
+        <h2><i class="fas fa-utensil-spoon"></i> PEDIDO DE ALMUERZO</h2>
+        <p class="fecha">{{ menu.fecha }}</p>
+        <p class="hora-actual" id="relojDigital"></p>
+    </div>
+
+    <div class="menu-resumen">
+        <div class="menu-item-resumen"><span class="emoji-grande">🥗</span> {{ menu.entrada }}</div>
+        <div class="menu-item-resumen"><span class="emoji-grande">🍲</span> {{ menu.sopa }}</div>
+        <div class="menu-item-resumen"><span class="emoji-grande">🍎</span> {{ menu.salida }}</div>
+    </div>
+
+    <!-- SECCIÓN DE ÍTEMS DEL PEDIDO -->
+    <div class="pedido-section">
+        <div class="pedido-header">
+            <h3><i class="fas fa-clipboard-list"></i> DETALLE DEL PEDIDO</h3>
+            <button type="button" id="agregarItemBtn" class="btn-agregar-item">➕ AGREGAR PLATO</button>
+        </div>
+        <div id="itemsList" class="items-list"></div>
+        <div class="total-pedido">
+            <span>TOTAL DEL PEDIDO:</span>
+            <span id="totalPedido" class="total-monto">0.00 Bs</span>
+        </div>
+    </div>
+
+    <!-- MESAS CIRCULARES -->
+    <div class="mesas-touch">
+        <div class="mesas-grid">
+            {% for i in range(1, 10) %}
+            <div class="mesa-wrapper">
+                <button type="button" class="mesa-btn" data-mesa="{{ i }}">
+                    <span class="mesa-texto">MESA</span>
+                    <span class="mesa-numero">{{ i }}</span>
+                </button>
+            </div>
+            {% endfor %}
+            <div class="mesa-wrapper mesa-cero-wrapper">
+                <button type="button" class="mesa-btn mesa-cero" data-mesa="10">
+                    <span class="mesa-texto">MESA</span>
+                    <span class="mesa-numero">10</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTONES DE ACCIÓN -->
+    <div class="parallevar-touch">
+        <button type="button" id="paraLlevarBtn" class="parallevar-btn">📦 PARA LLEVAR (DIRECTO)</button>
+    </div>
+    <div class="accion-touch">
+        <button id="confirmarPedidoBtn" class="confirmar-btn">✅ CONFIRMAR PEDIDO (MESA)</button>
+    </div>
+</div>
+
+<!-- DATOS DEL MENÚ OCULTOS (JSON SEGURO) -->
+<script id="menuDataJson" type="application/json">
+{{ {
+    "segundo1": {
+        "nombre": menu.segundo1_nombre,
+        "stock": menu.segundo1_stock,
+        "precioCompleto": menu.precio_almuerzo_completo,
+        "precioSuelto": menu.precio_segundo_suelto1
+    },
+    "segundo2": {
+        "nombre": menu.segundo2_nombre,
+        "stock": menu.segundo2_stock,
+        "precioCompleto": menu.precio_almuerzo_completo,
+        "precioSuelto": menu.precio_segundo_suelto2
+    }
+} | tojson }}
+</script>
+
+<style>
+    /* ========== ESTILOS COMPLETOS (RESPONSIVE, TÁCTIL) ========== */
+    :root {
+        --primary: #bc6c25;
+        --primary-dark: #9c5211;
+        --secondary: #2e7d32;
+        --background: #fef7e8;
+        --white: #ffffff;
+        --shadow: 0 8px 20px rgba(0,0,0,0.08);
+        --radius-large: 60px;
+        --radius-medium: 40px;
+        --radius-small: 24px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .touch-container {
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: clamp(1rem, 4vw, 2rem);
+        background: linear-gradient(135deg, var(--background) 0%, #fef0df 100%);
+        border-radius: clamp(30px, 8vw, 80px);
+        box-shadow: var(--shadow);
+    }
+
+    .menu-header-touch { text-align: center; margin-bottom: 1.5rem; }
+    .menu-header-touch h2 { font-size: clamp(1.4rem, 5vw, 2.2rem); color: var(--primary); }
+    .fecha { font-size: clamp(0.8rem, 3vw, 1.2rem); background: rgba(188,108,37,0.1); display: inline-block; padding: 0.2rem 1rem; border-radius: var(--radius-small); color: var(--primary-dark); }
+    .hora-actual { font-size: 0.85rem; margin-top: 0.3rem; color: #7a5a3a; }
+
+    .menu-resumen {
+        display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.8rem;
+        background: var(--white); border-radius: var(--radius-large); padding: 0.8rem 1rem;
+        margin-bottom: 1.5rem; border: 1px solid #e2cfb5;
+    }
+    .menu-item-resumen { flex: 1 1 120px; text-align: center; font-weight: 600; font-size: clamp(0.75rem, 2.5vw, 1rem); color: #4a3a28; }
+    .emoji-grande { font-size: 1.2rem; margin-right: 4px; }
+
+    /* Pedido */
+    .pedido-section {
+        background: rgba(255,255,240,0.7);
+        border-radius: var(--radius-medium);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .pedido-header {
+        display: flex; justify-content: space-between; align-items: center;
+        flex-wrap: wrap; margin-bottom: 1rem; padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary);
+    }
+    .pedido-header h3 { font-size: 1.3rem; color: var(--primary-dark); font-weight: 700; }
+    .btn-agregar-item {
+        background: var(--primary); color: white; border: none; border-radius: 60px;
+        padding: 0.6rem 1.2rem; font-weight: bold; font-size: 1rem; cursor: pointer;
+        transition: transform 0.1s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .btn-agregar-item:active { transform: scale(0.96); }
+
+    .items-list {
+        display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;
+        max-height: 500px; overflow-y: auto; padding-right: 0.5rem;
+    }
+
+    .item-card {
+        background: white; border-radius: 48px; padding: 1rem 1.2rem;
+        display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+        gap: 0.8rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #eedbc8;
+    }
+    .item-select-segundo { flex: 2; min-width: 160px; }
+    .item-select-tipo { flex: 1; min-width: 140px; }
+    .item-select-segundo select, .item-select-tipo select {
+        width: 100%; padding: 0.7rem 0.8rem; border-radius: 60px;
+        border: 1px solid #e2cfb5; background: #fffcf8; font-weight: bold; font-size: 0.9rem;
+        cursor: pointer;
+    }
+    .stock-info {
+        font-size: 0.7rem; display: inline-block; padding: 0.2rem 0.6rem;
+        border-radius: 40px; margin-top: 0.3rem; text-align: center;
+        background: #d4edda; color: #155724;
+    }
+    .stock-info.sin-stock { background: #f8d7da; color: #721c24; }
+
+    .item-cantidad {
+        display: flex; align-items: center; gap: 0.8rem;
+        background: #fef4e8; padding: 0.3rem 0.8rem; border-radius: 80px;
+        min-width: 130px; justify-content: center;
+    }
+    .item-cantidad button {
+        width: 50px; height: 50px; font-size: 1.6rem;
+        background: var(--primary); color: white; border: none; border-radius: 50%;
+        cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+        font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        transition: transform 0.05s;
+    }
+    .item-cantidad button:active { transform: scale(0.92); background: var(--primary-dark); }
+    .item-cantidad span { min-width: 45px; text-align: center; font-weight: 800; font-size: 1.3rem; color: #2c2b28; }
+
+    .item-precio { font-weight: bold; color: var(--primary-dark); text-align: center; min-width: 100px; font-size: 0.9rem; }
+    .item-subtotal { font-weight: 800; color: #2c2b28; text-align: center; min-width: 100px; font-size: 1rem; background: #fff0e0; padding: 0.3rem 0.5rem; border-radius: 60px; }
+    .item-eliminar {
+        background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #c62828;
+        padding: 0.5rem; border-radius: 50%; width: 48px; height: 48px;
+        display: inline-flex; align-items: center; justify-content: center;
+    }
+    .item-eliminar:active { background: rgba(198,40,40,0.1); transform: scale(0.9); }
+
+    .total-pedido {
+        text-align: right; font-size: 1.3rem; font-weight: bold; padding: 0.8rem;
+        background: white; border-radius: 48px; border-top: 2px solid var(--primary);
+        margin-top: 0.5rem;
+    }
+    .total-monto { color: var(--primary-dark); font-size: 1.6rem; margin-left: 1rem; }
+
+    /* Mesas circulares */
+    .mesas-touch { margin-bottom: 1.5rem; }
+    .mesas-grid {
+        display: grid; grid-template-columns: repeat(3, minmax(80px, 120px));
+        justify-content: center; gap: 1rem; background: rgba(255,255,240,0.5);
+        padding: 1rem; border-radius: 48px;
+    }
+    .mesa-btn {
+        width: 100%; aspect-ratio: 1 / 1; border-radius: 50%;
+        background: linear-gradient(145deg, #fff 0%, #f0e8dc 100%);
+        border: 2px solid var(--primary); display: flex; flex-direction: column;
+        align-items: center; justify-content: center; cursor: pointer;
+        box-shadow: 0 6px 0 #a08060; transition: 0.05s linear;
+    }
+    .mesa-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #a08060; }
+    .mesa-btn.seleccionada {
+        background: var(--primary); border-color: var(--primary-dark);
+        box-shadow: 0 3px 0 #6a3e15; transform: translateY(3px);
+    }
+    .mesa-btn.seleccionada .mesa-numero, .mesa-btn.seleccionada .mesa-texto { color: white; }
+    .mesa-numero { font-size: clamp(1.2rem, 4vw, 1.8rem); font-weight: 900; color: #4a2c0e; margin-top: 4px; }
+    .mesa-texto { font-size: clamp(0.6rem, 2vw, 0.7rem); font-weight: 600; color: #7a5a3a; margin-bottom: 2px; }
+    .mesa-cero-wrapper { grid-column: span 3; display: flex; justify-content: center; }
+    .mesa-cero { max-width: 140px; }
+
+    /* Botones acción */
+    .parallevar-touch, .accion-touch { margin-bottom: 1rem; }
+    .parallevar-btn, .confirmar-btn {
+        width: 100%; padding: clamp(0.8rem, 3vw, 1rem);
+        font-size: clamp(1rem, 4vw, 1.4rem); font-weight: bold; border: none;
+        border-radius: var(--radius-medium); cursor: pointer; text-align: center;
+        transition: 0.05s linear;
+    }
+    .parallevar-btn { background: #ff9800; color: white; box-shadow: 0 5px 0 #b07020; }
+    .confirmar-btn { background: var(--primary); color: white; box-shadow: 0 5px 0 #8b4a15; }
+    .parallevar-btn:active, .confirmar-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #8b4a15; }
+
+    /* Notificaciones */
+    .notificaciones-container {
+        position: fixed; top: 20px; right: 20px; z-index: 10000;
+        display: flex; flex-direction: column; gap: 10px; max-width: 350px; pointer-events: none;
+    }
+    .notificacion-item {
+        pointer-events: auto; background: #ff9800; color: white;
+        padding: 12px 20px; border-radius: 60px; font-weight: bold;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        animation: slideInRight 0.3s ease;
+    }
+    .notificacion-item.error { background: #dc3545; }
+    .notificacion-item.success { background: #28a745; }
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @media (max-width: 800px) {
+        .item-card { flex-direction: column; align-items: stretch; }
+        .item-select-segundo, .item-select-tipo, .item-cantidad, .item-precio, .item-subtotal { width: 100%; text-align: left; }
+        .item-cantidad { justify-content: space-between; }
+        .item-eliminar { align-self: flex-end; }
+        .mesas-grid { grid-template-columns: repeat(3, minmax(70px, 100px)); gap: 0.8rem; }
+    }
+    @media (max-width: 600px) {
+        .menu-resumen { flex-direction: column; align-items: center; gap: 0.5rem; }
+        .mesas-grid { grid-template-columns: repeat(3, minmax(65px, 85px)); gap: 0.6rem; }
+        .mesa-numero { font-size: 1rem; }
+        .mesa-texto { font-size: 0.55rem; }
+        .item-cantidad button { width: 44px; height: 44px; font-size: 1.4rem; }
+        .item-cantidad span { font-size: 1.2rem; }
+    }
+</style>
+
+<script>
+(function() {
+    // ==================== CARGAR DATOS DEL MENÚ DESDE JSON SEGURO ====================
+    let menuData;
+    try {
+        const scriptTag = document.getElementById('menuDataJson');
+        if (scriptTag) {
+            menuData = JSON.parse(scriptTag.textContent);
+        } else {
+            // Fallback por si algo falla
+            menuData = {
+                segundo1: { nombre: "Pollo asado", stock: 20, precioCompleto: 10, precioSuelto: 6 },
+                segundo2: { nombre: "Pescado a la plancha", stock: 15, precioCompleto: 10, precioSuelto: 6 }
+            };
+            console.warn("No se encontraron datos del menú, usando valores por defecto");
+        }
+    } catch(e) {
+        console.error("Error al parsear datos del menú", e);
+        // Valores por defecto para no romper la app
+        menuData = {
+            segundo1: { nombre: "Pollo asado", stock: 20, precioCompleto: 10, precioSuelto: 6 },
+            segundo2: { nombre: "Pescado a la plancha", stock: 15, precioCompleto: 10, precioSuelto: 6 }
+        };
+    }
+
+    // ==================== ESTADO ====================
+    let items = [];
+    let estadoPedido = { mesa: null, paraLlevar: false };
+    let mesasBtns = [], parallevarBtn, confirmarBtn;
+
+    // ==================== NOTIFICACIONES ====================
+    let contenedorNotificaciones = null;
+    function crearContenedorNotificaciones() {
+        if (!document.getElementById('notificacionesContainer')) {
+            const container = document.createElement('div');
+            container.id = 'notificacionesContainer';
+            container.className = 'notificaciones-container';
+            document.body.appendChild(container);
+        }
+        return document.getElementById('notificacionesContainer');
+    }
+    function mostrarNotificacion(mensaje, tipo = 'info', duracion = 4000) {
+        const container = crearContenedorNotificaciones();
+        const notif = document.createElement('div');
+        notif.className = `notificacion-item ${tipo}`;
+        notif.innerText = mensaje;
+        container.appendChild(notif);
+        setTimeout(() => {
+            notif.style.opacity = '0';
+            notif.style.transform = 'translateX(100%)';
+            setTimeout(() => notif.remove(), 300);
+        }, duracion);
+    }
+
+    // ==================== PERSISTENCIA LOCAL ====================
+    function guardarEstadoLocal() {
+        try {
+            const estado = { items, mesa: estadoPedido.mesa, paraLlevar: estadoPedido.paraLlevar, timestamp: Date.now() };
+            localStorage.setItem('pedidoMultiline', JSON.stringify(estado));
+        } catch(e) {}
+    }
+    function cargarEstadoLocal() {
+        try {
+            const raw = localStorage.getItem('pedidoMultiline');
+            if (!raw) return false;
+            const estado = JSON.parse(raw);
+            if (Date.now() - estado.timestamp > 30 * 60 * 1000) return false;
+            items = estado.items || [];
+            if (estado.mesa !== undefined) estadoPedido.mesa = estado.mesa;
+            if (estado.paraLlevar !== undefined) estadoPedido.paraLlevar = estado.paraLlevar;
+            return true;
+        } catch(e) { return false; }
+    }
+    function limpiarEstadoLocal() { localStorage.removeItem('pedidoMultiline'); }
+
+    // ==================== CÁLCULOS ====================
+    function calcularSubtotal(item) {
+        const segundo = menuData[item.segundoKey];
+        const precio = item.tipo === 'completo' ? segundo.precioCompleto : segundo.precioSuelto;
+        return precio * item.cantidad;
+    }
+
+    // ==================== RENDERIZADO DE ÍTEMS ====================
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, (m) => {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function renderizarItems() {
+        const contenedor = document.getElementById('itemsList');
+        if (!contenedor) return;
+        contenedor.innerHTML = '';
+        let totalGeneral = 0;
+        items.forEach((item, idx) => {
+            const subtotal = calcularSubtotal(item);
+            totalGeneral += subtotal;
+            const segundo = menuData[item.segundoKey];
+            const precioUnit = item.tipo === 'completo' ? segundo.precioCompleto : segundo.precioSuelto;
+            const stock = segundo.stock;
+            const stockClass = stock <= 0 ? 'sin-stock' : '';
+            const stockText = stock <= 0 ? 'AGOTADO' : `${stock} disponibles`;
+
+            const card = document.createElement('div');
+            card.className = 'item-card';
+            card.innerHTML = `
+                <div class="item-select-segundo">
+                    <select data-idx="${idx}" class="select-segundo">
+                        <option value="segundo1" ${item.segundoKey === 'segundo1' ? 'selected' : ''}>${escapeHtml(menuData.segundo1.nombre)}</option>
+                        <option value="segundo2" ${item.segundoKey === 'segundo2' ? 'selected' : ''}>${escapeHtml(menuData.segundo2.nombre)}</option>
+                    </select>
+                    <div class="stock-info ${stockClass}">
+                        <i class="fas fa-boxes"></i> ${stockText}
+                    </div>
+                </div>
+                <div class="item-select-tipo">
+                    <select data-idx="${idx}" class="select-tipo">
+                        <option value="completo" ${item.tipo === 'completo' ? 'selected' : ''}>ALMUERZO COMPLETO</option>
+                        <option value="suelto" ${item.tipo === 'suelto' ? 'selected' : ''}>SEGUNDO SUELTO</option>
+                    </select>
+                </div>
+                <div class="item-cantidad">
+                    <button class="btn-cantidad-menos" data-idx="${idx}">−</button>
+                    <span class="cantidad-valor" data-idx="${idx}">${item.cantidad}</span>
+                    <button class="btn-cantidad-mas" data-idx="${idx}">+</button>
+                </div>
+                <div class="item-precio">${precioUnit.toFixed(2)} Bs/u</div>
+                <div class="item-subtotal">${subtotal.toFixed(2)} Bs</div>
+                <button class="item-eliminar" data-idx="${idx}"><i class="fas fa-trash-alt"></i></button>
+            `;
+            contenedor.appendChild(card);
+        });
+        document.getElementById('totalPedido').innerText = totalGeneral.toFixed(2) + ' Bs';
+
+        // Eventos dinámicos
+        document.querySelectorAll('.select-segundo').forEach(sel => {
+            sel.addEventListener('change', (e) => {
+                const idx = parseInt(sel.dataset.idx);
+                items[idx].segundoKey = sel.value;
+                renderizarItems();
+                guardarEstadoLocal();
+            });
+        });
+        document.querySelectorAll('.select-tipo').forEach(sel => {
+            sel.addEventListener('change', (e) => {
+                const idx = parseInt(sel.dataset.idx);
+                items[idx].tipo = sel.value;
+                renderizarItems();
+                guardarEstadoLocal();
+            });
+        });
+        document.querySelectorAll('.btn-cantidad-menos').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = parseInt(btn.dataset.idx);
+                if (items[idx].cantidad > 1) {
+                    items[idx].cantidad--;
+                    renderizarItems();
+                    guardarEstadoLocal();
+                } else {
+                    mostrarNotificacion('Cantidad mínima 1', 'warning', 1500);
+                }
+            });
+        });
+        document.querySelectorAll('.btn-cantidad-mas').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = parseInt(btn.dataset.idx);
+                if (items[idx].cantidad < 99) {
+                    items[idx].cantidad++;
+                    renderizarItems();
+                    guardarEstadoLocal();
+                } else {
+                    mostrarNotificacion('Cantidad máxima 99', 'warning', 1500);
+                }
+            });
+        });
+        document.querySelectorAll('.item-eliminar').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = parseInt(btn.dataset.idx);
+                items.splice(idx, 1);
+                renderizarItems();
+                guardarEstadoLocal();
+            });
+        });
+    }
+
+    function agregarItem() {
+        items.push({ segundoKey: 'segundo1', tipo: 'completo', cantidad: 1 });
+        renderizarItems();
+        guardarEstadoLocal();
+    }
+
+    function validarStockTotal() {
+        let consumo1 = 0, consumo2 = 0;
+        for (let item of items) {
+            if (item.segundoKey === 'segundo1') consumo1 += item.cantidad;
+            else consumo2 += item.cantidad;
+        }
+        const errores = [];
+        if (consumo1 > menuData.segundo1.stock) errores.push(`Stock insuficiente de ${menuData.segundo1.nombre}. Disponibles: ${menuData.segundo1.stock}`);
+        if (consumo2 > menuData.segundo2.stock) errores.push(`Stock insuficiente de ${menuData.segundo2.nombre}. Disponibles: ${menuData.segundo2.stock}`);
+        return errores;
+    }
+
+    async function enviarPedido(esParaLlevar) {
+        if (items.length === 0) {
+            mostrarNotificacion('❌ Agrega al menos una línea', 'error', 3000);
+            return;
+        }
+        const erroresStock = validarStockTotal();
+        if (erroresStock.length) {
+            erroresStock.forEach(err => mostrarNotificacion(err, 'error', 4000));
+            return;
+        }
+        if (!esParaLlevar && !estadoPedido.mesa) {
+            mostrarNotificacion('❌ Selecciona una mesa', 'error', 3000);
+            return;
+        }
+        const payload = {
+            items: items.map(item => ({
+                segundo_nombre: menuData[item.segundoKey].nombre,
+                tipo: item.tipo,
+                cantidad: item.cantidad
+            })),
+            mesa: esParaLlevar ? 0 : parseInt(estadoPedido.mesa),
+            para_llevar: esParaLlevar ? 1 : 0
+        };
+        const botonActivo = esParaLlevar ? parallevarBtn : confirmarBtn;
+        const textoOriginal = botonActivo.innerText;
+        botonActivo.disabled = true;
+        botonActivo.innerText = '⏳ PROCESANDO...';
+        try {
+            const response = await fetch('/almuerzo_multiple', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
+            }
+            const html = await response.text();
+            limpiarEstadoLocal();
+            mostrarNotificacion('✅ Pedido enviado', 'success', 2000);
+            document.open();
+            document.write(html);
+            document.close();
+        } catch (error) {
+            mostrarNotificacion(`❌ Error: ${error.message}`, 'error', 5000);
+            botonActivo.disabled = false;
+            botonActivo.innerText = textoOriginal;
+        }
+    }
+
+    function actualizarUIMesas() {
+        mesasBtns.forEach(btn => {
+            const mesaVal = btn.getAttribute('data-mesa');
+            if (mesaVal === String(estadoPedido.mesa)) btn.classList.add('seleccionada');
+            else btn.classList.remove('seleccionada');
+        });
+        if (parallevarBtn) {
+            if (estadoPedido.paraLlevar) parallevarBtn.classList.add('activo');
+            else parallevarBtn.classList.remove('activo');
+        }
+    }
+
+    function actualizarReloj() {
+        const ahora = new Date();
+        const horaStr = ahora.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const relojDiv = document.getElementById('relojDigital');
+        if (relojDiv) relojDiv.innerText = '🕒 ' + horaStr;
+    }
+    setInterval(actualizarReloj, 1000);
+    actualizarReloj();
+
+    function inicializar() {
+        mesasBtns = document.querySelectorAll('.mesa-btn');
+        parallevarBtn = document.getElementById('paraLlevarBtn');
+        confirmarBtn = document.getElementById('confirmarPedidoBtn');
+        const agregarBtn = document.getElementById('agregarItemBtn');
+
+        mesasBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                estadoPedido.mesa = btn.getAttribute('data-mesa');
+                estadoPedido.paraLlevar = false;
+                actualizarUIMesas();
+                guardarEstadoLocal();
+            });
+        });
+        parallevarBtn.addEventListener('click', () => {
+            estadoPedido.paraLlevar = true;
+            estadoPedido.mesa = null;
+            actualizarUIMesas();
+            guardarEstadoLocal();
+            enviarPedido(true);
+        });
+        confirmarBtn.addEventListener('click', () => enviarPedido(false));
+        agregarBtn.addEventListener('click', agregarItem);
+
+        const cargado = cargarEstadoLocal();
+        if (!cargado || items.length === 0) {
+            items = [{ segundoKey: 'segundo1', tipo: 'completo', cantidad: 1 }];
+        }
+        renderizarItems();
+        actualizarUIMesas();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', inicializar);
+    } else {
+        inicializar();
+    }
+})();
+</script>
+{% endblock %}

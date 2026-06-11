@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Procesando pedido...</title>
+    <style>
+        body { font-family: Arial; text-align: center; padding: 2rem; background: #fef7e8; }
+        .message { background: white; border-radius: 32px; padding: 2rem; max-width: 500px; margin: 0 auto; }
+        a { color: #bc6c25; }
+        .btn { display: inline-block; margin-top: 1rem; background: #bc6c25; color: white; padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="message">
+    <h2>✅ Pedido registrado</h2>
+    <p>Generando ticket y comanda...</p>
+    <p id="status">Abriendo comanda...</p>
+    <p>Si no ves el ticket en unos segundos, haz clic aquí:</p>
+    <a href="/ticket_{{ tipo }}/{{ pedido_id }}" class="btn" id="manualTicket">📄 Ver ticket ahora</a>
+    <br><br>
+    <small>Si la comanda no se abrió, usa este enlace: <a href="/comanda/{{ tipo }}/{{ pedido_id }}" target="_blank">Abrir comanda</a></small>
+</div>
+<script>
+    // Abrir comanda en nueva pestaña
+    var comandaWindow = window.open("/comanda/{{ tipo }}/{{ pedido_id }}", "_blank");
+    if (!comandaWindow || comandaWindow.closed) {
+        document.getElementById('status').innerHTML = '⚠️ El navegador bloqueó la ventana de comanda. Usa el enlace manual.';
+    } else {
+        document.getElementById('status').innerHTML = '✔ Comanda abierta. Redirigiendo al ticket...';
+    }
+    // Redirigir a ticket después de 2 segundos (forzado)
+    setTimeout(function() {
+        window.location.href = "/ticket_{{ tipo }}/{{ pedido_id }}";
+    }, 2000);
+</script>
+</body>
+</html>

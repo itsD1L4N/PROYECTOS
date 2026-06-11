@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Reporte {{ hoy }}</title>
+<style>
+    body { font-family: 'Inter', sans-serif; }
+    table { width:100%; border-collapse: collapse; margin-bottom:2rem; }
+    th, td { border:1px solid #bc6c25; padding:8px; text-align:left; }
+    th { background:#bc6c25; color:white; }
+    h2 { color:#9c5211; }
+</style>
+</head>
+<body>
+<h1>Reporte de ventas - {{ hoy }}</h1>
+<h2>Almuerzos</h2>
+</td>
+    <thead><tr><th>ID</th><th>Mesa</th><th>Segundo</th><th>Para llevar</th><th>Hora</th></tr></thead>
+    <tbody>
+    {% for a in almuerzos %}
+    <tr><td>{{ a.id }}</td><td>{{ a.mesa_id }}</td><td>{{ a.segundo_elegido }}</td><td>{{ 'Sí' if a.para_llevar else 'No' }}</td><td>{{ a.hora }}</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+<h2>Cafetería</h2>
+<table>
+    <thead><tr><th>ID</th><th>Mesa</th><th>Items</th><th>Total (Bs)</th><th>Hora</th></tr></thead>
+    <tbody>
+    {% for c in cafeterias %}
+    <tr><td>{{ c.id }}</td><td>{{ c.mesa_id }}</td><td>{{ c.items }}</td><td>{{ c.total }}</td><td>{{ c.hora }}</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>
