@@ -371,16 +371,16 @@
 
 <!-- CONTENEDOR DE DATOS PARA JAVASCRIPT (sin inyección directa) -->
 <div id="datosComanda" style="display:none;"
-     data-pedido-multiple="{{ pedido_multiple | tojson }}"
-     data-pedido-ids="{{ pedido_ids | tojson }}"
-     data-tipo="{{ tipo | tojson }}"
-     data-pedido-id="{{ pedido.id if pedido else '' }}"
-     data-items="{{ items | tojson }}"
-     data-total="{{ total | tojson }}"
-     data-mesa="{{ mesa | tojson }}"
-     data-para-llevar="{{ para_llevar | tojson }}"
-     data-fecha="{{ fecha | tojson }}"
-     data-hora="{{ hora | tojson }}">
+     data-pedido-multiple="{{ pedido_multiple | default(false) | tojson }}"
+     data-pedido-ids="{% if pedido_ids %}{{ pedido_ids | tojson }}{% else %}[]{% endif %}"
+     data-tipo="{% if tipo %}{{ tipo | tojson }}{% else %}''{% endif %}"
+     data-pedido-id="{% if pedido and pedido.id %}{{ pedido.id | tojson }}{% else %}''{% endif %}"
+     data-items="{% if items %}{{ items | tojson }}{% else %}[]{% endif %}"
+     data-total="{% if total %}{{ total | tojson }}{% else %}0{% endif %}"
+     data-mesa="{% if mesa %}{{ mesa | tojson }}{% else %}0{% endif %}"
+     data-para-llevar="{% if para_llevar %}{{ para_llevar | tojson }}{% else %}false{% endif %}"
+     data-fecha="{% if fecha %}{{ fecha | tojson }}{% else %}''{% endif %}"
+     data-hora="{% if hora %}{{ hora | tojson }}{% else %}''{% endif %}">
 </div>
 
 <script>
