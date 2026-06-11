@@ -660,19 +660,21 @@ def cafeteria():
             ''', (mesa_id, json.dumps(items), total, HelperFechas.obtener_fecha_hoy(), HelperFechas.obtener_hora_actual(), 'pendiente', session['user_id']))
             conn.commit()
             pedido_id = cursor.lastrowid
-            conn.close()
             
             flash('Pedido de cafetería registrado', 'success')
+            logger.info(f"Pedido de cafetería creado: ID={pedido_id}, Mesa={mesa_id}")
             return redirect(url_for('ticket_cafeteria', pedido_id=pedido_id))
 
         except Exception as e:
             if conn:
                 conn.rollback()
-                conn.close()
             logger.error(f"Error POST /cafeteria: {str(e)}")
             traceback.print_exc()
             flash(f'Error al registrar pedido: {str(e)}', 'danger')
             return redirect(url_for('cafeteria'))
+        finally:
+            if conn:
+                conn.close()
 
     # GET: mostrar productos y mesas
     conn = get_db()
@@ -690,24 +692,45 @@ def cafeteria():
 @app.route('/ticket_cafeteria/<int:pedido_id>')
 @login_required
 def ticket_cafeteria(pedido_id):
-    conn = get_db()
-    pedido = conn.execute('''
-        SELECT p.*, m.numero
-        FROM pedidos_cafeteria p
-        LEFT JOIN mesas m ON p.mesa_id = m.id
-        WHERE p.id = ?
-    ''', (pedido_id,)).fetchone()
-    conn.close()
-    if not pedido:
-        flash('Pedido no encontrado', 'danger')
+    """Muestra el ticket de un pedido de cafetería."""
+    conn = None
+    try:
+        conn = get_db()
+        pedido = conn.execute('''
+            SELECT p.*, m.numero
+            FROM pedidos_cafeteria p
+            LEFT JOIN mesas m ON p.mesa_id = m.id
+            WHERE p.id = ?
+        ''', (pedido_id,)).fetchone()
+        
+        if not pedido:
+            flash('Pedido no encontrado', 'danger')
+            return redirect(url_for('cafeteria'))
+        
+        # Convertir a diccionario mutable para poder asignar valores
+        pedido_dict = dict(pedido)
+        
+        # Asegurar que items sea un string JSON válido, incluso si es None
+        if pedido_dict['items'] is None:
+            pedido_dict['items'] = '[]'
+        
+        # Validar que el JSON sea válido
+        try:
+            json.loads(pedido_dict['items'])
+        except json.JSONDecodeError:
+            pedido_dict['items'] = '[]'
+        
+        logger.info(f"Ticket cafetería #={pedido_id} generado exitosamente")
+        return render_template('ticket.html', pedido=pedido_dict, tipo='cafeteria')
+    
+    except Exception as e:
+        logger.error(f"Error al generar ticket de cafetería: {e}")
+        traceback.print_exc()
+        flash(f'Error al generar el ticket: {str(e)}', 'danger')
         return redirect(url_for('cafeteria'))
-    
-    # Asegurar que pedido.items sea un string JSON válido, incluso si es None
-    if pedido['items'] is None:
-        pedido = dict(pedido)  # convertir a dict mutable
-        pedido['items'] = '[]'
-    
-    return render_template('ticket.html', pedido=pedido, tipo='cafeteria')
+    finally:
+        if conn:
+            conn.close()
 
 # ==================== COMANDAS ====================
 @app.route('/comanda/<tipo>/<int:pedido_id>')
