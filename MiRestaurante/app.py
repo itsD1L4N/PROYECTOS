@@ -624,18 +624,33 @@ def cafeteria():
             items_json = request.form.get('items', '[]')
             total = float(request.form.get('total', 0))
             items = json.loads(items_json)
+            
             if not items:
                 flash('No hay productos en el pedido', 'danger')
                 return redirect(url_for('cafeteria'))
+
+            # =============== VALIDAR Y ESTANDARIZAR ESTRUCTURA DE ITEMS ===============
+            items_validados = []
+            for item in items:
+                items_validados.append({
+                    'nombre': str(item.get('nombre', item.get('producto_nombre', 'Sin nombre'))),
+                    'variante_nombre': str(item.get('variante_nombre', '')),
+                    'variante_id': int(item.get('variante_id', 0)) if item.get('variante_id') else 0,
+                    'precio': float(item.get('precio', 0)),
+                    'cantidad': int(item.get('cantidad', 1))
+                })
+
+            logger.info(f"Items validados para cafetería: {items_validados}")
 
             conn = get_db()
             cursor = conn.cursor()
 
             # Descontar stock de cada ítem (variante o producto base)
-            for item in items:
+            for item in items_validados:
                 cantidad = item.get('cantidad', 1)
                 variante_id = item.get('variante_id', 0)
                 nombre = item.get('nombre', '')
+                
                 if variante_id and variante_id != 0:
                     cursor.execute('''
                         UPDATE producto_variantes 
@@ -653,16 +668,17 @@ def cafeteria():
                     if cursor.rowcount == 0:
                         raise Exception(f'Stock insuficiente para el producto {nombre}')
 
-            # Insertar pedido en pedidos_cafeteria
+            # Insertar pedido en pedidos_cafeteria con items validados
             cursor.execute('''
                 INSERT INTO pedidos_cafeteria (mesa_id, items, total, fecha, hora, estado, usuario_id)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (mesa_id, json.dumps(items), total, HelperFechas.obtener_fecha_hoy(), HelperFechas.obtener_hora_actual(), 'pendiente', session['user_id']))
+            ''', (mesa_id, json.dumps(items_validados), total, HelperFechas.obtener_fecha_hoy(), 
+                  HelperFechas.obtener_hora_actual(), 'pendiente', session['user_id']))
             conn.commit()
             pedido_id = cursor.lastrowid
             
             flash('Pedido de cafetería registrado', 'success')
-            logger.info(f"Pedido de cafetería creado: ID={pedido_id}, Mesa={mesa_id}")
+            logger.info(f"Pedido de cafetería creado: ID={pedido_id}, Mesa={mesa_id}, Items={len(items_validados)}")
             return redirect(url_for('ticket_cafeteria', pedido_id=pedido_id))
 
         except Exception as e:
@@ -1045,9 +1061,13 @@ def reportes():
     pedidos = cursor.execute('SELECT items FROM pedidos_cafeteria WHERE fecha = ?', (hoy,)).fetchall()
     contador = {}
     for p in pedidos:
-        items = json.loads(p['items'])
-        for item in items:
-            contador[item['nombre']] = contador.get(item['nombre'], 0) + 1
+        try:
+            items = json.loads(p['items'])
+            for item in items:
+                nombre = item.get('nombre', 'Desconocido')
+                contador[nombre] = contador.get(nombre, 0) + 1
+        except:
+            pass
     top = sorted(contador.items(), key=lambda x: x[1], reverse=True)[:5]
     conn.close()
     return render_template('reportes.html', almuerzos=almuerzos, cafeterias=cafeterias, top=top)
